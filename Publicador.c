@@ -55,7 +55,7 @@ int main( int argc, char *argv[] ) {
 
 int contarLineas(const char* nombre_archivo) {
     FILE* archivo = fopen(nombre_archivo, "r");
-    if (!archivo) return -1;  // Error al abrir el archivo
+    if (!archivo) return -1;
 
     int lineas = 0;
     char buffer[256];
@@ -67,68 +67,73 @@ int contarLineas(const char* nombre_archivo) {
 }
 
 void LeerNoticias(const char* nombre_archivo, NoticiasT* noticias) {
-    FILE *arch_ptr;
-    //buffer de caracter
-    char carac;
-    arch_ptr = fopen(nombre_archivo, "r");
+    FILE *arch_ptr = fopen(nombre_archivo, "r");
 
-    if (NULL == arch_ptr) {
+    if (!arch_ptr) {
         perror("No fue posible abrir el archivo");
         return;
     }
 
     noticias->datos = malloc(noticias->tam_actual * sizeof(char*));
-    
-    if (noticias->datos == NULL) {
+    if (!noticias->datos) {
         perror("Error al reservar memoria para noticias");
         fclose(arch_ptr);
         return;
     }
 
+    for (int i = 0; i < noticias->tam_actual; i++) {
+        noticias->datos[i] = NULL;  // Inicializar cada puntero a NULL
+    }
+
     char buffer[256];
     int i = 0;
 
-    while(fgets(buffer, sizeof(buffer), arch_ptr)){
-        if (DEBUG) { printf("%s", buffer); }
+    while (fgets(buffer, sizeof(buffer), arch_ptr) && i < noticias->tam_actual) {
         buffer[strcspn(buffer, "\n")] = '\0';  // Eliminar el salto de línea
-        noticias->datos[i] = malloc(strlen(buffer) + 1);  // Reservar espacio para cada string
-        strcpy(noticias->datos[i], buffer);  // Copiar la línea al arreglo
-        if (!validarFormatoNoticia(buffer)) {
+
+        noticias->datos[i] = malloc(strlen(buffer) + 1);
+        if (!noticias->datos[i]) {
+            perror("Error al reservar memoria para una noticia");
             liberarNoticias(noticias);
-            break;
+            fclose(arch_ptr);
+            return;
+        }
+        
+        strcpy(noticias->datos[i], buffer);
+
+        if (!validarFormatoNoticia(buffer)) {
+            printf("Archivo con formato inválido en la línea %d: %s\n", i + 1, buffer);
+            liberarNoticias(noticias);
+            fclose(arch_ptr);
+            return;
         }
         i++;
     }
 
-    fclose (arch_ptr);
+    fclose(arch_ptr);
 }
 
-void PublicarNoticias(unsigned int tiempo_n, const char* nombre_fifo) {
-    //Abrir fifo
-    //Escribir en el fifo hasta que se terminen las noticias
-}
-
-void liberarNoticias(struct Noticias* noticias) {
-    for (int i = 0; i < noticias->tam_actual; i++) {
-        free(noticias->datos[i]); // Liberar cada string
+void liberarNoticias(NoticiasT* noticias) {
+    if (noticias->datos != NULL) {
+        for (int i = 0; i < noticias->tam_actual; i++) {
+            if (noticias->datos[i] != NULL) {
+                free(noticias->datos[i]);
+            }
+        }
+        free(noticias->datos);
+        noticias->datos = NULL;
     }
-    free(noticias->datos); // Liberar el arreglo de punteros
     noticias->tam_actual = 0;
 }
 
 int validarFormatoNoticia(const char* linea) {
-    // Verificar si la línea comienza con una categoría válida seguida de ": "
     if ((linea[0] == 'A' || linea[0] == 'E' || linea[0] == 'C' || 
          linea[0] == 'P' || linea[0] == 'S') && 
         linea[1] == ':' && linea[2] == ' ') {
         
-        // Verificar que después de ": " hay contenido
         if (strlen(linea) > 3) {
             return 1; 
-        } else {
-            printf("Archivo con formato invalido");
-            return 0;
         }
     }
-    return 0; // Formato inválido
+    return 0;
 }
