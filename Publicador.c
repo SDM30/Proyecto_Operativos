@@ -1,4 +1,15 @@
+#include <stdio.h>     
+#include <stdlib.h>     
+#include <string.h>     
+#include <unistd.h>    
+#include <fcntl.h>      
+#include <sys/types.h>  
+#include <sys/stat.h>   
+#include <semaphore.h>  
+#include <errno.h>  
 #include "Publicador.h"
+
+sem_t *mutex;
 
 int main( int argc, char *argv[] ) {
 
@@ -49,6 +60,8 @@ int main( int argc, char *argv[] ) {
     for (int i = 0; i < noticias.tam_actual; i++) {
         printf("%s\n", noticias.datos[i]);
     }
+
+    PublicarNoticias(seg, nombre_fifo, noticias);
 
     return 0;
 }
@@ -136,4 +149,34 @@ int validarFormatoNoticia(const char* linea) {
         }
     }
     return 0;
+}
+
+void PublicarNoticias(unsigned int tiempo_n, const char* nombre_fifo, NoticiasT noticias) {
+    mutex = sem_open("/semaforo_publicador", O_CREAT, 1);
+    
+    if (mutex == SEM_FAILED) {
+        perror("Error al crear el semáforo");
+        return;
+    }
+
+    int fifo_fd = open(nombre_fifo, O_WRONLY);  // Abrir FIFO
+    if (fifo_fd < 0) {
+        perror("Error al abrir el FIFO");
+        sem_close(mutex);
+        return;
+    }
+
+    for(int i = 0; i < noticias.tam_actual; i++) {
+        //Seccion Critica
+        sem_wait(mutex);
+        // Escribir en el FIFO
+        printf("Publicando Noticia = %s \n", noticias.datos[i]);
+        write(fifo_fd, noticias.datos[i], strlen(noticias.datos[i]) + 1);
+        sem_post(mutex);
+
+        sleep(tiempo_n);  // Esperar antes de publicar otra noticia
+    }
+
+    close(fifo_fd);
+    sem_close(mutex);
 }

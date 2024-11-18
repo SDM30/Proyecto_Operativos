@@ -1,11 +1,6 @@
 # ifndef PUBLICADOR_H
 # define PUBLICADOR_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h> 
-#include <string.h>
-
 #define DEBUG 1
 
 struct Publicador {
@@ -21,8 +16,8 @@ typedef struct Noticias NoticiasT;
 
 int contarLineas(const char* nombreArchivo);
 void LeerNoticias(const char* nombre_archivo, NoticiasT* noticias);
-void PublicarNoticias(unsigned int tiempo_n, const char* nombre_fifo);
-void liberarNoticias(struct Noticias* noticias);
+void liberarNoticias(NoticiasT* noticias);
 int validarFormatoNoticia(const char* linea);
+void PublicarNoticias(unsigned int tiempo_n, const char* nombre_fifo, NoticiasT noticias);
 
 #endif
