@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-
-#define MAX_TOPICO 256
-
-void suscribirse(const char* pipe_SSC);
+#include "Suscriptor.h"
 
 int main(int argc, char *argv[]) {
     // Verificación de argumentos
