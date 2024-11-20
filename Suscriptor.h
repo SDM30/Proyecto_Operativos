@@ -8,7 +8,8 @@
 #include <fcntl.h>
 
 // Tamaño máximo para los tópicos
-#define MAX_TOPICO 256
+#define MAX_TOPICO 128
+#define MAX_NOTICIA 256
 void suscribirse(const char* pipe_SSC);
 
 #endif // SUSCRIPCION_H
