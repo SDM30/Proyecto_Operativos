@@ -11,5 +11,14 @@
 #define MAX_TOPICO 128
 #define MAX_NOTICIA 256
 void suscribirse(const char* pipe_SSC);
+void manejarTerminacion(int signo);
+void manejarNoticia(int signo);
+void manejarNoticia(int signo);
+
+typedef struct {
+    long mtype;                // Tipo de mensaje (PID del suscriptor)
+    char contenido[MAX_NOTICIA]; // Contenido de la noticia
+} Mensaje;
+
 
 #endif // SUSCRIPCION_H

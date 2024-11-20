@@ -8,15 +8,8 @@
 #include <sys/msg.h>
 #include <sys/ipc.h>
 
-typedef struct {
-    long mtype;                // Tipo de mensaje (PID del suscriptor)
-    char contenido[MAX_NOTICIA]; // Contenido de la noticia
-} Mensaje;
-
 int cola_mensajes_id;
 pid_t mi_pid;
-
-void manejarNoticia(int signo);
 
 void suscribirse(const char* pipe_SSC) {
     char topicos[MAX_TOPICO];
@@ -51,6 +44,7 @@ void suscribirse(const char* pipe_SSC) {
 
     // Configurar el manejador de señales
     signal(SIGUSR1, manejarNoticia);
+    signal(SIGTERM, manejarTerminacion);
 
     printf("Suscriptor registrado con PID: %d. Esperando noticias...\n", mi_pid);
 
@@ -69,6 +63,11 @@ void manejarNoticia(int signo) {
     } else {
         printf("Nueva noticia recibida: %s\n", mensaje.contenido);
     }
+}
+
+void manejarTerminacion(int signo) {
+    printf("Recibida señal de terminación (%d). Finalizando suscriptor...\n", signo);
+    exit(0); // Finalizar el proceso
 }
 
 int main(int argc, char *argv[]) {

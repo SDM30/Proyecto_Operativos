@@ -25,6 +25,15 @@ typedef struct {
     char contenido[80];      // Contenido de la noticia
 } Noticia;
 
+typedef struct {
+    char tipo;
+    char contenido[MAX_BUFFER];
+} NoticiaPendiente;
+
+NoticiaPendiente cola_pendientes[MAX_NOTICIAS];
+int inicio_pendientes = 0;
+int fin_pendientes = 0;
+
 // Variables globales
 extern Suscriptor suscriptores[MAX_SUSCRIPTORES];
 extern int num_suscriptores;
@@ -37,8 +46,7 @@ extern sem_t mutex_noticias;
 
 // Funciones
 void agregarSuscriptor(const char *mensaje);
-void agregarNoticia(char tipo, const char *contenido);
-void procesarNoticias();
+void finalizarSuscriptores();
 void *gestionarSuscripciones(void *arg);
 void *gestionarPublicadores(void *arg);
 
